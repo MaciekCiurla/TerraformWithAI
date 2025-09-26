@@ -2,9 +2,13 @@ name: workflow02
 on: 
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   test:
-#    runs-on: [self-hosted] # Specify the label of your self-hosted runner here
+    runs-on: ubuntu-latest
     steps:
     - name: Azure login
       uses: azure/login@v2
