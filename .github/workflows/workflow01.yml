@@ -2,10 +2,6 @@ name: workflow01
 on: 
   workflow_dispatch:
   
-permissions:
-  id-token: write
-  contents: read  
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -13,11 +9,7 @@ jobs:
     - name: Azure login
       uses: azure/login@v2
       with:
-        auth-type: IDENTITY
-        client-id: ${{ secrets.ARM_CLIENT_ID }}
-        tenant-id: ${{ secrets.ARM_TENANT_ID }}
-        subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        enable-AzPSSession: true
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     # Azure CLI action only supports linux self-hosted runners for now.
     # If you want to execute the Azure CLI script on a windows self-hosted runner, you can execute it directly in `run`.
