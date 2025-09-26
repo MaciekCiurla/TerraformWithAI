@@ -1,16 +1,16 @@
 name: tf-plan
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - '*.tf'
-      - '.github/workflows/terraform.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - '*.tf'
-      - '.github/workflows/terraform.yml'
+#  push:
+#    branches: [ main, develop ]
+#    paths:
+#      - '*.tf'
+#      - '.github/workflows/terraform.yml'
+#  pull_request:
+#    branches: [ main ]
+#    paths:
+#      - '*.tf'
+#      - '.github/workflows/terraform.yml'
   workflow_dispatch:
 
 env:
