@@ -13,10 +13,6 @@ on:
 #      - '.github/workflows/terraform.yml'
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-  
 env:
   TERRAFORM_VERSION: '1.12.2'
   WORKING_DIRECTORY: '.'
@@ -43,11 +39,7 @@ jobs:
     - name: Configure Azure credentials
       uses: azure/login@v2
       with:
-        auth-type: IDENTITY
-        client-id: ${{ secrets.ARM_CLIENT_ID }}
-#        client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
-        tenant-id: ${{ secrets.ARM_TENANT_ID }}
-        subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Terraform Init
       run: |
