@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: tf-plan
 
 on:
   push:
