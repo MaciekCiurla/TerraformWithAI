@@ -1,5 +1,6 @@
 name: workflow02
-on: [push]
+on: 
+  workflow_dispatch:
 
 jobs:
   test:
