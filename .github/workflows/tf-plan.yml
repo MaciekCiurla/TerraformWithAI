@@ -41,8 +41,9 @@ jobs:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
 
     - name: Configure Azure credentials
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
+        auth-type: IDENTITY
         client-id: ${{ secrets.ARM_CLIENT_ID }}
         client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
         tenant-id: ${{ secrets.ARM_TENANT_ID }}
