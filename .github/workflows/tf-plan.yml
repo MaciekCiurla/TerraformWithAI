@@ -45,7 +45,7 @@ jobs:
       with:
         auth-type: IDENTITY
         client-id: ${{ secrets.ARM_CLIENT_ID }}
-        client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+#        client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
         tenant-id: ${{ secrets.ARM_TENANT_ID }}
         subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
