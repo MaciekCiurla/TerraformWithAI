@@ -1,4 +1,4 @@
-name: Run Azure Login with user-assigned managed identity
+name: workflow01
 on: [push]
 
 jobs:
