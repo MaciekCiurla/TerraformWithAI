@@ -103,8 +103,8 @@ jobs:
             --head "${{ env.SOURCE_BRANCH }}" \
             --base "${{ env.TARGET_BRANCH }}" \
             --title "$PR_TITLE" \
-            --body "$PR_DESCRIPTION" \
-            --json number --jq '.number')
+            --body "$PR_DESCRIPTION")
+            
           
           echo "Created PR with number: $PR_NUMBER"
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
