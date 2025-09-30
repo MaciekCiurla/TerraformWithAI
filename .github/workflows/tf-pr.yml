@@ -52,7 +52,8 @@ jobs:
     - name: Download Download Build Artifact
       uses: actions/download-artifact@v5
       with:
-        name: ai-analysis-report
+        artifact-ids: 4119751898
+        # name: ai-analysis-report
         path: artifacts
         
     - name: Display structure of downloaded files
