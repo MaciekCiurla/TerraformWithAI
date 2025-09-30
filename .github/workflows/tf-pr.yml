@@ -1,0 +1,191 @@
+name: tf-pr
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  # Uncomment below for automatic triggers
+  # push:
+  #   branches:
+  #     - develop
+  #     - feature/*
+  #   paths-ignore:
+  #     - README.md
+  #     - docs/*
+
+env:
+  TARGET_BRANCH: 'main'
+  SOURCE_BRANCH: 'b01'
+  REPO_NAME: 'TerraformWithAI'
+  ARTIFACT_NAME: 'ai-analysis-report'
+  ARTIFACT_FILE_NAME: 'terraform-analysis.txt'
+
+jobs:
+  terraform-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Setup Azure CLI
+      uses: azure/setup-azcli@v1
+      
+    - name: Configure Azure CLI
+      run: |
+        echo "Azure CLI version:"
+        az --version
+        
+        # Install Azure DevOps extension
+        az extension add --name azure-devops
+        
+        # Configure defaults
+        az devops configure --defaults organization=${{ secrets.AZURE_DEVOPS_ORG }} project=${{ secrets.AZURE_DEVOPS_PROJECT }}
+
+    - name: Download Build Artifact
+      run: |
+        # Create artifacts directory
+        mkdir -p artifacts
+        
+        # Download artifact from previous workflow run
+        # Note: This would need to be adapted based on your artifact storage strategy
+        echo "Attempting to download artifacts..."
+        
+        # For GitHub Actions, you might need to use the GitHub API to download artifacts
+        # This is a placeholder - you'll need to implement the actual artifact download logic
+        echo "Artifact download logic needs to be implemented based on your storage strategy"
+        
+        # List contents for debugging
+        ls -la artifacts/
+
+    - name: Check Artifact File Size
+      run: |
+        if [ -f "artifacts/${{ env.ARTIFACT_FILE_NAME }}" ]; then
+          CHARACTER_COUNT=$(wc -c < "artifacts/${{ env.ARTIFACT_FILE_NAME }}")
+          echo "File size: $CHARACTER_COUNT characters"
+          echo "FILE_SIZE=$CHARACTER_COUNT" >> $GITHUB_ENV
+        else
+          echo "Artifact file not found"
+          echo "FILE_SIZE=0" >> $GITHUB_ENV
+        fi
+
+    - name: Create Pull Request
+      id: create-pr
+      run: |
+        # Set up GitHub CLI authentication
+        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        
+        # Create PR title and description
+        PR_TITLE="Automated PR from ${{ env.SOURCE_BRANCH }} to ${{ env.TARGET_BRANCH }}"
+        PR_DESCRIPTION="This pull request was automatically created by GitHub Actions with code analysis made by AI.
+
+        **Source Branch:** ${{ env.SOURCE_BRANCH }}
+        **Target Branch:** ${{ env.TARGET_BRANCH }}
+        
+        Please review the changes and associated artifacts."
+        
+        # Check if PR already exists
+        EXISTING_PR=$(gh pr list --head "${{ env.SOURCE_BRANCH }}" --base "${{ env.TARGET_BRANCH }}" --state open --json number --jq '.[0].number')
+        
+        if [ "$EXISTING_PR" != "null" ] && [ "$EXISTING_PR" != "" ]; then
+          echo "PR already exists with number: $EXISTING_PR"
+          echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+        else
+          # Create new PR
+          PR_NUMBER=$(gh pr create \
+            --head "${{ env.SOURCE_BRANCH }}" \
+            --base "${{ env.TARGET_BRANCH }}" \
+            --title "$PR_TITLE" \
+            --body "$PR_DESCRIPTION" \
+            --json number --jq '.number')
+          
+          echo "Created PR with number: $PR_NUMBER"
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Process Artifact and Add PR Comment
+      if: steps.create-pr.outputs.pr_number != ''
+      run: |
+        PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
+        ARTIFACT_PATH="artifacts"
+        
+        echo "Processing artifacts in: $ARTIFACT_PATH"
+        echo "PR Number: $PR_NUMBER"
+        
+        # Check if artifact directory exists
+        if [ ! -d "$ARTIFACT_PATH" ]; then
+          echo "Artifact directory not found. Creating comment about missing artifacts."
+          COMMENT_CONTENT="⚠️ **Artifact Status**: No artifacts were found for this build.
+          
+          **Build Information:**
+          - Repository: ${{ env.REPO_NAME }}
+          - Commit: ${{ github.sha }}"
+        else
+          # Create comment with artifact information
+          COMMENT_CONTENT="📦 **Build Artifacts Summary**
+          
+          **Build Information:**
+          - Repository: ${{ env.REPO_NAME }}
+          - Commit: ${{ github.sha }}
+          
+          **Artifacts Found:**"
+          
+          # List all files in artifact directory
+          cd "$ARTIFACT_PATH"
+          for file in $(find . -type f | head -20); do
+            file_size=$(stat -c%s "$file" 2>/dev/null || echo "unknown")
+            COMMENT_CONTENT="$COMMENT_CONTENT
+          - \`$file\` (Size: $file_size bytes)"
+          done
+          
+          # If there are text-based files, include their content (limit to prevent huge comments)
+          echo "
+          
+          **Sample Content:**" >> temp_comment.txt
+          
+          for file in $(find . -name "*.txt" -o -name "*.log" -o -name "*.json" -o -name "*.xml" -o -name "*.md" | head -3); do
+            if [ -f "$file" ]; then
+              file_size=$(stat -c%s "$file" 2>/dev/null || echo "0")
+              if [ "$file_size" -lt 5000 ]; then  # Only include small files
+                echo "
+          
+          **Content of \`$file\`:**
+          \`\`\`
+          $(head -55 "$file")
+          \`\`\`" >> temp_comment.txt
+              fi
+            fi
+          done
+          
+          if [ -f "temp_comment.txt" ]; then
+            COMMENT_CONTENT="$COMMENT_CONTENT$(cat temp_comment.txt)"
+            rm temp_comment.txt
+          fi
+        fi
+        
+        # Add comment to PR using GitHub CLI
+        echo "Adding comment to PR $PR_NUMBER"
+        echo "$COMMENT_CONTENT" | gh pr comment "$PR_NUMBER" --body-file -
+
+    - name: Output PR Information
+      if: steps.create-pr.outputs.pr_number != ''
+      run: |
+        PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
+        PR_URL="${{ github.server_url }}/${{ github.repository }}/pull/$PR_NUMBER"
+        
+        echo "## Pull Request Created Successfully!"
+        echo "PR Number: $PR_NUMBER"
+        echo "PR URL: $PR_URL"
+        
+        # Set output for other jobs
+        echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+        echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+    - name: Upload Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: artifacts/
+        retention-days: 30
