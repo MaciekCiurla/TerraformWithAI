@@ -31,9 +31,13 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 0
 
-    - name: Setup Azure CLI
-      uses: azure/setup-azcli@v1
-      
+#    - name: Setup Azure CLI
+#      uses: azure/setup-azcli@v1
+
+    - name: Install azure-cli
+      uses: pietrobolcato/install-azure-cli-action@v1.0.1
+       
+     
     - name: Configure Azure CLI
       run: |
         echo "Azure CLI version:"
