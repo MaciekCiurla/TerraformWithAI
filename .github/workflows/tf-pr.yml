@@ -31,13 +31,9 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 0
 
-#    - name: Setup Azure CLI
-#      uses: azure/setup-azcli@v1
-
     - name: Install azure-cli
-      uses: pietrobolcato/install-azure-cli-action@v1.0.1
-       
-     
+      uses: pietrobolcato/install-azure-cli-action@v1.0.1     
+    
     - name: Configure Azure CLI
       run: |
         echo "Azure CLI version:"
@@ -49,22 +45,19 @@ jobs:
         # Configure defaults
         az devops configure --defaults organization=${{ secrets.AZURE_DEVOPS_ORG }} project=${{ secrets.AZURE_DEVOPS_PROJECT }}
 
-    - name: Download Build Artifact
+    - name: Create Artifact folder
       run: |
-        # Create artifacts directory
         mkdir -p artifacts
-        
-        # Download artifact from previous workflow run
-        # Note: This would need to be adapted based on your artifact storage strategy
-        echo "Attempting to download artifacts..."
-        
-        # For GitHub Actions, you might need to use the GitHub API to download artifacts
-        # This is a placeholder - you'll need to implement the actual artifact download logic
-        echo "Artifact download logic needs to be implemented based on your storage strategy"
-        
-        # List contents for debugging
-        ls -la artifacts/
 
+    - name: Download Download Build Artifact
+      uses: actions/download-artifact@v5
+      with:
+        name: ai-analysis-report
+        path: artifacts
+        
+    - name: Display structure of downloaded files
+      run: ls -la artifacts/
+          
     - name: Check Artifact File Size
       run: |
         if [ -f "artifacts/${{ env.ARTIFACT_FILE_NAME }}" ]; then
