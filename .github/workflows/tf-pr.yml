@@ -49,12 +49,19 @@ jobs:
       run: |
         mkdir -p artifacts
 
-    - name: Download Download Build Artifact
-      uses: actions/download-artifact@v5
+    - name: Download workflow artifact
+      uses: dawidd6/action-download-artifact@v11
       with:
-        artifact-ids: 4119751898
-        # name: ai-analysis-report
-        path: artifacts
+        workflow: tf-plan.yml
+        name: ai-analysis-report
+        path: artifacts     
+
+#    - name: Download Download Build Artifact
+#      uses: actions/download-artifact@v5
+#      with:
+#        artifact-ids: 4119751898
+#       # name: ai-analysis-report
+#        path: artifacts
         
     - name: Display structure of downloaded files
       run: ls -la artifacts/
