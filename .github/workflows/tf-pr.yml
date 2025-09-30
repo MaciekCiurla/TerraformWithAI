@@ -17,6 +17,8 @@ env:
   REPO_NAME: 'TerraformWithAI'
   ARTIFACT_NAME: 'ai-analysis-report'
   ARTIFACT_FILE_NAME: 'terraform-analysis.txt'
+  AZURE_DEVOPS_ORG: 'mikec0319'
+  AZURE_DEVOPS_PROJECT: 'TerraformWithAI'
 
 jobs:
   terraform-analysis:
@@ -26,7 +28,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 0
 
     - name: Setup Azure CLI
@@ -74,7 +76,7 @@ jobs:
       id: create-pr
       run: |
         # Set up GitHub CLI authentication
-        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
         
         # Create PR title and description
         PR_TITLE="Automated PR from ${{ env.SOURCE_BRANCH }} to ${{ env.TARGET_BRANCH }}"
